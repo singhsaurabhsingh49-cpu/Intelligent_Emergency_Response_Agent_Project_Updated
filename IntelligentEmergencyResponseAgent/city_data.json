@@ -1,0 +1,25 @@
+{
+  "nodes": [
+    {"id":"A","name":"Central Junction","x":1,"y":1},
+    {"id":"B","name":"City Hospital","x":3,"y":1},
+    {"id":"C","name":"Market","x":2,"y":3},
+    {"id":"D","name":"Police Station","x":4,"y":3},
+    {"id":"E","name":"Fire Station","x":1,"y":5},
+    {"id":"F","name":"North Road","x":4,"y":5},
+    {"id":"G","name":"Industrial Area","x":6,"y":3},
+    {"id":"H","name":"Emergency Site","x":6,"y":1}
+  ],
+  "edges": [
+    {"from":"A","to":"B","distance":3,"base_time":4,"traffic":"Low","blocked":false,"accident":false,"risk":1},
+    {"from":"A","to":"C","distance":2,"base_time":3,"traffic":"Medium","blocked":false,"accident":false,"risk":2},
+    {"from":"C","to":"B","distance":2,"base_time":3,"traffic":"Low","blocked":false,"accident":false,"risk":1},
+    {"from":"C","to":"E","distance":3,"base_time":4,"traffic":"Low","blocked":false,"accident":false,"risk":1},
+    {"from":"B","to":"D","distance":3,"base_time":4,"traffic":"High","blocked":false,"accident":false,"risk":3},
+    {"from":"D","to":"F","distance":2,"base_time":3,"traffic":"Medium","blocked":false,"accident":false,"risk":2},
+    {"from":"F","to":"E","distance":4,"base_time":5,"traffic":"Low","blocked":false,"accident":false,"risk":1},
+    {"from":"D","to":"G","distance":2,"base_time":3,"traffic":"Low","blocked":false,"accident":false,"risk":2},
+    {"from":"G","to":"H","distance":2,"base_time":3,"traffic":"Medium","blocked":false,"accident":false,"risk":2},
+    {"from":"B","to":"H","distance":6,"base_time":7,"traffic":"Low","blocked":false,"accident":false,"risk":1},
+    {"from":"F","to":"G","distance":3,"base_time":4,"traffic":"High","blocked":false,"accident":false,"risk":4}
+  ]
+}

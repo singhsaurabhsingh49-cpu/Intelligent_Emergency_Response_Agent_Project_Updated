@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Emergency Response Agent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header><h1>🚑 Intelligent Emergency Response & Rescue Agent</h1><p>AI-based route planning with dynamic road conditions</p></header>
+<main>
+
+<!-- 1. EMERGENCY REQUEST + ALGORITHM SELECTION -->
+<section class="panel" id="requestSection">
+  <h2>Emergency Request</h2>
+  <div class="grid">
+    <label>Vehicle<select id="vehicle"><option>Ambulance</option><option>Fire Brigade</option><option>Police</option></select></label>
+    <label>Start location<select id="start"></select></label>
+    <label>Destination<select id="goal"></select></label>
+    <label>Priority<select id="priority"><option>Critical</option><option>High</option><option>Normal</option></select></label>
+    <label>Optimization<select id="mode"><option>Minimum Travel Time</option><option>Minimum Distance</option><option>Minimum Traffic</option><option>Safest Route</option><option>Avoid Blocked Roads</option></select></label>
+  </div>
+
+  <h3 class="subhead">Algorithm Selection</h3>
+  <div class="algo-cards" id="algoCards" role="radiogroup" aria-label="Search algorithm">
+    <label class="algo-card selected"><input type="radio" name="algorithm" value="A*" checked><span class="algo-name">A*</span><span class="algo-desc">Cost + straight-line heuristic. Guided and fast.</span></label>
+    <label class="algo-card"><input type="radio" name="algorithm" value="UCS"><span class="algo-name">UCS</span><span class="algo-desc">Expands the cheapest node first. Lowest-cost route.</span></label>
+    <label class="algo-card"><input type="radio" name="algorithm" value="BFS"><span class="algo-name">BFS</span><span class="algo-desc">Level by level. Fewest roads, ignores cost.</span></label>
+    <label class="algo-card"><input type="radio" name="algorithm" value="DFS"><span class="algo-name">DFS</span><span class="algo-desc">Goes deep first. Any route, not necessarily short.</span></label>
+  </div>
+  <button id="findBtn" onclick="calculate()">Find Best Route</button>
+  <span class="hint">Changing the algorithm after the first search updates the graph automatically.</span>
+</section>
+
+<!-- 2. CITY GRAPH VISUALIZATION -->
+<section class="panel" id="graphSection">
+  <h2>City Graph Visualization</h2>
+  <div id="algoBanner" class="banner neutral">Select a start and destination, then click <b>Find Best Route</b>. The graph below is the live city graph from the backend.</div>
+  <div id="graphStats" class="chips"></div>
+  <div class="graph-layout">
+    <div>
+      <div class="graph-scroll"><div id="graph" class="graph-box" aria-label="City graph"></div></div>
+      <div class="graph-actions">
+        <button class="secondary small" id="replayBtn" onclick="replayExploration()" disabled>▶ Replay exploration step by step</button>
+        <span id="graphCaption" class="caption"></span>
+      </div>
+    </div>
+    <aside class="legend" aria-label="Graph legend">
+      <h3>Legend</h3>
+      <div class="legend-group"><h4>Cities (nodes)</h4>
+        <div class="lg"><span class="dot" style="background:#2e9e5b"></span>Starting city</div>
+        <div class="lg"><span class="dot" style="background:#d32f2f"></span>Destination city</div>
+        <div class="lg"><span class="dot" style="background:#8e44ad"></span>Explored / visited node</div>
+        <div class="lg"><span class="dot" style="background:#f57c00"></span>Final route node</div>
+        <div class="lg"><span class="dot" style="background:#2f80ed"></span>Normal city (not explored)</div>
+        <div class="lg"><span class="obadge">1</span>Order in which the node was explored</div>
+      </div>
+      <div class="legend-group"><h4>Roads (edges)</h4>
+        <div class="lg"><span class="line" style="background:#f57c00;height:6px"></span>Final selected route</div>
+        <div class="lg"><span class="line" style="background:#9aa5b1"></span>Normal road</div>
+        <div class="lg"><span class="line dashed"></span>Blocked road</div>
+        <div class="lg"><span class="line" style="background:#9aa5b1;height:2px"></span>Thin = low traffic</div>
+        <div class="lg"><span class="line" style="background:#9aa5b1;height:4px"></span>Medium traffic</div>
+        <div class="lg"><span class="line" style="background:#9aa5b1;height:7px"></span>Thick = high traffic</div>
+      </div>
+      <div class="legend-group"><h4>Road labels</h4>
+        <div class="lg small"><b>Dist</b> = road distance</div>
+        <div class="lg small"><b>Cost</b> = travel cost for the selected optimization mode (the value the algorithms use)</div>
+        <div class="lg small"><span class="tdot" style="background:#2e9e5b"></span>Low <span class="tdot" style="background:#e0a800"></span>Medium <span class="tdot" style="background:#a63d2f"></span>High traffic</div>
+        <div class="lg small">⚠ = accident on road (adds penalty)</div>
+        <div class="lg small">Click a road to select it in the simulator.</div>
+      </div>
+    </aside>
+  </div>
+
+  <h3 class="subhead">Road Conditions</h3>
+  <div class="table-scroll">
+    <table class="data" id="roadTable"><thead><tr><th>Road</th><th>Distance</th><th>Base time</th><th>Traffic</th><th>Status</th><th>Cost <span id="roadCostMode" class="muted"></span></th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- 3. ROUTE INFORMATION -->
+<section class="panel" id="routeSection">
+  <h2>Route Information</h2>
+  <div id="result" class="result">Choose inputs and click Find Best Route.</div>
+  <div id="map" class="map"></div>
+  <div id="segments"></div>
+</section>
+
+<!-- 4. DYNAMIC ENVIRONMENT -->
+<section class="panel" id="eventSection">
+  <h2>Dynamic Environment Simulation</h2>
+  <div class="grid">
+    <label>Road start<select id="roadFrom"></select></label>
+    <label>Road end<select id="roadTo"></select></label>
+    <label>Event<select id="event"><option value="block">Block road</option><option value="clear">Clear road</option><option value="traffic">Change traffic</option><option value="accident_on">Report accident</option><option value="accident_off">Clear accident</option></select></label>
+    <label>Traffic level<select id="traffic"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+  </div>
+  <button class="secondary" onclick="updateEvent()">Apply Road Event</button>
+  <button class="ghost" onclick="resetCity()">Reset all roads to original</button>
+  <p id="eventMessage"></p>
+</section>
+
+<!-- 5. ALGORITHM COMPARISON -->
+<section class="panel" id="compareSection">
+  <h2>Algorithm Comparison</h2>
+  <p class="muted">Runs BFS, DFS, UCS and A* on the same graph, start, destination and optimization mode. The original algorithm logic is unchanged.</p>
+  <button class="secondary" onclick="runComparison()">Compare All Algorithms</button>
+  <div id="compareOut"><p class="muted">Click <b>Compare All Algorithms</b> or <b>Find Best Route</b> to see the comparison.</p></div>
+</section>
+
+<section class="panel"><h2>AI Agent Information</h2><div id="agents"></div></section>
+</main>
+<footer>Academic demonstration prototype • Synthetic sample city data</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
